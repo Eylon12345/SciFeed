@@ -7,7 +7,7 @@ import os
 import openai
 import pandas as pd
 from io import BytesIO
-import threading
+# import threading
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
