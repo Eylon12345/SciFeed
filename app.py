@@ -107,32 +107,34 @@ def fetch_articles_periodically(interval=3600):
         fetch_and_save_articles(keyword, n)
         time.sleep(interval)
 
-# Display the saved articles
+
+# if st.sidebar.checkbox('Enable Periodic Article Fetching'):
+#     threading.Thread(target=fetch_articles_periodically).start()
 articles_data = load_articles()
-print(f"Displaying {len(articles_data)} articles on Streamlit.")
-for index, row in articles_data.iterrows():
-    with st.expander(row['title']):
-        st.write(row['summary'])
 
-if st.sidebar.checkbox('Enable Periodic Article Fetching'):
-    threading.Thread(target=fetch_articles_periodically).start()
 
-card_style = """
-<style>
-    .card {
-        border: 1px solid #ddd;
-        border-radius: 25px;
-        padding: 20px;
-        margin: 10px 0px;
-        box-shadow: 5px 5px 5px grey;
-    }
-</style>
-"""
+# Decide on display type (Expander vs Cards)
+use_cards = st.sidebar.toggle('Display using cards', value=False)
 
-st.markdown(card_style, unsafe_allow_html=True)
-
-for index, row in articles_data.iterrows():
-    st.markdown(f"<div class='card'><h3>{row['title']}</h3><p>{row['summary']}</p></div>", unsafe_allow_html=True)
-
+# Display using expanders
+if not use_cards:
+    for index, row in articles_data.iterrows():
+        with st.expander(row['title']):
+            st.write(row['summary'])
+else:
+    card_style = """
+    <style>
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            padding: 20px;
+            margin: 10px 0px;
+            box-shadow: 5px 5px 5px grey;
+        }
+    </style>
+    """
+    st.markdown(card_style, unsafe_allow_html=True)
+    for index, row in articles_data.iterrows():
+        st.markdown(f"<div class='card'><h3>{row['title']}</h3><p>{row['summary']}</p></div>", unsafe_allow_html=True)
 
 
