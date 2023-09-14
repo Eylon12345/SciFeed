@@ -1,0 +1,19 @@
+Summary:
+
+This paper proposes a new computational model that combines Lacanian psychoanalysis with active inference to provide a comprehensive understanding of the human mind. The model explores the concept of desire as partial generalized synchronization and applies it to the dynamics of suicide to demonstrate its theoretical and practical implications. The study highlights the potential of computational psychoanalysis in unraveling complex mental phenomena.
+
+Bullet points:
+
+1. A new computational model combining Lacanian psychoanalysis and active inference is proposed to understand the human mind.
+2. The model explores desire as partial generalized synchronization and its application to suicide dynamics.
+3. The study demonstrates the theoretical and practical implications of computational psychoanalysis.
+4. The three registers of Lacanian psychoanalysis (Imaginary, Symbolic, Real) and the concept of logical time are key components of the proposed model.
+5. The study highlights the potential of computational psychoanalysis in uncovering complex mental phenomena.
+
+Keywords:
+
+1. active inference
+2. free energy principle
+3. Lacan
+4. psychoanalysis
+5. computational psychoanalysis

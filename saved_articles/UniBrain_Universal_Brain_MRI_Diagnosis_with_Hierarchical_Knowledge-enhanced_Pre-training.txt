@@ -1,0 +1,886 @@
+UniBrain: Universal Brain MRI Diagnosis with
+Hierarchical Knowledge-enhanced Pre-training
+Jiayu Lei1,2, Lisong Dai4, Haoyun Jiang3,2, Chaoyi Wu3,2, Xiaoman Zhang3,2, Yao Zhang2
+Jiangchao Yao3,2,†,Weidi Xie3,2,Yanyong Zhang1,Yuehua Li4,Ya Zhang3,2,Yanfeng Wang3,2,†
+misslei@mail.ustc.edu.cn
+1University of Science and Technology of China
+2Shanghai AI Laboratory
+3Shanghai Jiao Tong University
+4Shanghai Sixth People’s Hospital Affiliated to Shanghai Jiao Tong University
+https://github.com/ljy19970415/UniBrain
+Abstract
+Magnetic resonance imaging (MRI) have played a crucial role in brain disease
+diagnosis, with which a range of computer-aided artificial intelligence methods
+have been proposed. However, the early explorations usually focus on the limited
+types of brain diseases in one study and train the model on the data in a small scale,
+yielding the bottleneck of generalization. Towards a more effective and scalable
+paradigm, we propose a hierarchical knowledge-enhanced pre-training framework
+for the universal brain MRI diagnosis, termed as UniBrain. Specifically, UniBrain
+leverages a large-scale dataset of 24,770 imaging-report pairs from routine diag-
+nostics. Different from previous pre-training techniques for the unitary vision or
+textual feature, or with the brute-force alignment between vision and language
+information, we leverage the unique characteristic of report information in differ-
+ent granularity to build a hierarchical alignment mechanism, which strengthens
+the efficiency in feature learning. Our UniBrain is validated on three real world
+datasets with severe class imbalance and the public BraTS2019 dataset. It not
+only consistently outperforms all state-of-the-art diagnostic methods by a large
+margin and provides a superior grounding performance but also shows comparable
+performance compared to expert radiologists on certain disease types.
+1 Introduction
+Due to the benefit of the non-invasive nature and superior soft tissue contrast [ 31,22], magnetic
+resonance imaging (MRI) has been considered as a reliable imaging method for brain disease
+diagnosis. With the rich morphological views of MRI modalities, e.g., T1-Weighted Imaging (T1WI),
+T2-Weighted Imaging (T2WI), T2-Weighted Fluid Attenuated Inversion Recovery (T2FLAIR), and
+Diffusion-Weighted Imaging (DWI), clinicians can effectively diagnose a wide range of brain diseases
+such as glioma, brain hemorrhage, and acute cerebral infarction [ 21]. To save human labor and
+source, the computer-aided way draws more attention with the development of artificial intelligence.
+Recently, deep learning has achieved an impressive performance on brain MRI data. For example,
+the deep learning models in [ 4,1] have shown non-inferior diagnostic capability to human experts on
+Alzheimer disease diagnosis or glioma segmentation. Nevertheless, these early works [ 20,50,34]
+usually focus on the specific brain diseases of a few types and the models are trained on datasets in a
+†: Corresponding author.
+Preprint. Under review.arXiv:2309.06828v1  [cs.CV]  13 Sep 2023small scale, maintaining a weak generalization on more brain diseases. As the pre-training paradigm
+becomes prevalent to address this dilemma, how to build a framework for effective and scalable
+multi-disease diagnosis remains open and draws an increasing attention, e.g., the recent studies for
+chest X-ray [ 46,40]. However, currently, the pre-training models for the multimodal brain MRI data
+have not yet well considered [31, 22] .
+Towards the pre-training on brain MRI data, there are actually several challenges: 1) sufficient
+available data . The annotation in the field of brain diagnosis is always expensive and time-consuming,
+which leads to a lack of large-scale datasets that encompass a wide range of brain diseases and MRI
+modalities; 2) specific domain knowledge . The complex nature of brain diseases necessitates a
+profound understanding of various MRI modalities and their corresponding disease manifestations in
+a fine-grained granularity, which promotes the efficiency of pre-training; 3) interpretable prediction .
+As the typical diagnosis coexists with visual evidences, it is better for a framework to have some
+visual grounding along with the prediction, which helps radiologists understand the system and build
+the trust between humans and machines [40].
+In this paper, we collect a large-scale brain MRI dataset that contains 24,770 imaging-report pairs of
+diverse brain diseases, and propose a knowledge-enhanced pre-training framework for the brain MRI
+diagnosis. Specifically, our design intuition builds upon a specific observation: the brain MRI report
+is composed of fine-grained components corresponding to each MRI modality, and coarse-grained
+conclusion of their union. This essentially provides us the potential to construct a hierarchical
+mechanism to strengthen the pre-training efficiency. Besides, given the diverse disease types and the
+rich MRI modalities, it is possible to pursue a universal paradigm with the strong generalization by
+encoding the commonality of brain diseases from both vision and text information. In summary, our
+contribution can be categorized as follows:
+•We propose a novel hierarchical knowledge-enhanced pre-training framework that learns on
+a large-scale brain MRI dataset to pursue universal brain disease diagnosis.
+•We design an automatic report decomposition for the fine-grained vision-language alignment
+to improve pre-training, and build a coupled perception module that can diagnose any brain
+disease with the proper description.
+•We conduct extensive experiments to verify the effectiveness of the proposed architec-
+ture, and compare with many state-of-the-art (SOTA) pre-training algorithms on public
+BraTS2019 dataset and three in-house datasets. Our model not only consistently achieves
+the superior performance to the baselines w.r.t. the brain disease diagnosis and grounding
+but also yields comparable diagnosis performance compared to expert radiologists on certain
+disease types.
+The rest of this paper is organized as follows: Section 2 presents related works. Section 3 describes
+in detail the proposed UniBrain pre-training framework. In Section 4, extensive experiments on three
+real world datasets and BraTS2019 are conducted to demonstrate the effectiveness of our pre-training
+model with ablation study in Section 5 explains the impact of submodules. Section 6 discusses
+advantages and limitations of the proposed method. We conclude our work in Section 7.
+2 Related Work
+2.1 Deep Learning in Brain MRI Diagnosis
+In recent years, many deep learning methods have been proposed for the medical applications on
+brain MRI. According to the brain diseases of interests, existing works can be mainly summarized
+into three types: 1) for brain tumors . The brain tumor segmentation tasks with MRI have been well
+studied. Many works follow the framework of UNETR [ 14] and explore the improvement of the
+encoder structure [ 41,26,42,47,23,7]. 2) for stroke . Automated segmentation and classification
+of images in the time-critical pathology is critical and practical. In this spirit, deep learning for
+abnormality detection and segmentation in lacunar and acute cerebral infarction has drawn much
+attention [ 25,45]. 3) for Alzheimer’s disease . Recently, there are several arts devoted to Alzheimer’s
+disease diagnosis [ 20,4], which have achieved impressive performance. For example, the deep
+learning models in [ 4] have shown non-inferior diagnostic capability to human experts on Alzheimer’s
+disease diagnosis. Despite effectiveness, these studies pay attention to a limited range of brain diseases.
+2DWI T1WI T2FLAIR T2WI
+Findings:
+Patchy abnormal signals can be seen next to the right lateral ventricle, showing 
+hypointensity on T1WI, hyperintensity on T2WI, T2FLAIR, and DWI.
+The brain cisterns and ventricles are slightly enlarged. 
+The sulci widened and deepened, and the midline structure did not shift.Report
+Impression:
+1. Acute cerebral infarction adjacent to the right lateral ventricle, please combine 
+with clinical information. 
+2. Brain atrophyAutomatic Report Decomposition
+Step 1: Entity Extraction Step 2: Entity Grouping
+𝐒𝐈𝐆: [morphology] [modality] [signal]’on’ [side] [anatomy]
+[Patchy] [T1WI] [hypointensity] ‘on’ [right] [lateral ventricle]
+𝐌𝐎𝐑𝐏𝐇 : [anatomy] [morphology] [Patchy] [T2WI] [hyperintensity] ‘on’ [right] [lateral ventricle]
+[Patchy] [T2FLAIR] [hyperintensity] ‘on’ [right] [lateral ventricle]
+[Patchy] [DWI] [hyperintensity] ‘on’ [right] [lateral ventricle]
+[Cistern] [slightly enlarged] etc.
+𝐏𝐀𝐓𝐇𝐎 : [pathology] ‘is located at’ [anatomy] / [anatomy]
+[Acute cerebral infarction ] ‘is located at’ [lateral ventricle]
+[Brain atrophy]T1WI
+Report
+T2WI
+Report
+T2FLAIR
+Report
+DWI
+Report
+Global
+Report𝐒𝐈𝐆[T1WI] +𝐌𝐎𝐑𝐏𝐇 +𝐏𝐀𝐓𝐇𝐎
+𝐒𝐈𝐆[T2WI] +𝐌𝐎𝐑𝐏𝐇 +𝐏𝐀𝐓𝐇𝐎
+𝐒𝐈𝐆[T2FLAIR] +𝐌𝐎𝐑𝐏𝐇 +
+𝐏𝐀𝐓𝐇𝐎
+𝐒𝐈𝐆[DWI] +𝐌𝐎𝐑𝐏𝐇 +𝐏𝐀𝐓𝐇𝐎
+𝐒𝐈𝐆+𝐌𝐎𝐑𝐏𝐇 +𝐏𝐀𝐓𝐇𝐎
+Disease
+Label[pathology] from𝐏𝐀𝐓𝐇𝐎Figure 1: The brain MRI report example and its decomposition. Specifically, we design an automatic
+report decomposition pipline to extract modality-wise and global MRI report (including the disease
+labels) from the vanilla MRI report findings and report impression.
+In contrast, our UniBrain targets to offer universal diagnosis of diverse brain diseases via a pre-training
+framework.
+2.2 Knowledge-enhanced Pre-training in Medical Domain
+As vision-language pre-training (VLP) has achieved significant performance in the general domain,
+a range of explorations in the perspective of pre-training have been conducted to improve the
+performance of medical applications [ 39,43]. Generally, these works can be summarized into two
+categories: the model architecture design and the data augmentation. For the former style, the domain
+knowledge including the principles of radiology and diagnostics are used to guide the design of the
+model structure, which makes the learning more efficient on the medical data [ 17,24,38,12,28].
+For the latter style, the auxiliary medical data or description knowledge will be involved into the
+training [ 33,44,18,8,48,6,16,40,46]. For instance, MedKLIP [ 40] leverages the knowledge
+disease description to enhance the pre-training and outperform the previous SOTA on zero-shot
+diagnosis and grounding on chest X-ray. KAD [ 46] integrated a well-established medical knowledge
+graph to enhance the self-supervised training, which greatly improves the generalization ability and
+acquire the SOTA zero-shot results on all public chest X-ray data. Nevertheless, when it comes to the
+brain diseases, there is a lack of sufficient study of pre-training to show the promise. Especially, the
+brain MRI data contains multiple modalities, which is different from the chest-xray and requires the
+specific consideration in design.
+3 Method
+In this section, we will first introduce the preliminary and discuss our motivation in utilizing the report
+information for pre-training. Then, we will present our automatic report decomposition strategy and
+hierarchical knowledge-enhanced pre-training framework sequentially.
+3.1 Problem Statement
+LetDtrain={(x1, r1), ...,(xN, rN)}denote a collection of Nimage-report pairs, where each xis a
+collection of KMRI modalities, i.e.,x= (x1, . . . , x K), andrrefers to the corresponding MRI case
+report. Our goal is to construct a pre-training framework for universal brain disease diagnosis.
+After pre-training, we can infer the likelihood of the brain diseases given a disease query set Q,
+namely, p=f(x, Q).
+3.2 Motivation
+Pioneering works have proved the effectiveness of incorporating the radiology report into visual-
+language pre-training (VLP) in medical field [ 46,40,16,2,48]. Nevertheless, previous methods are
+mainly developed for chest X-ray [ 46,40,32,19,27,29], whose report corresponds to single chest
+X-ray imaging. In comparison, brain MRI report contains information for multi-modal imagings, so
+the VLP methods on unimodal chest X-ray is not efficient for brain MRI.
+3DWI report
+T1WI report
+T2FLAIR reportT2WI report
+Imaging -Report 
+Alignment
+Global reportProject to
+vision -language
+semantic space Imaging -Report Alignment
+Image
+EncoderText
+EncoderProject to
+vision -language 
+semantic space Average
+Pooling 
+Contrastive
+Loss 
+Text
+EncoderClassifierBinary Cross Entropy LossHemorrhage into… 
+Tissue necrosis …
+Tumor composed…
+The spread of a …
+A subdural hema…
+A hard, usually va…
+Affecting white su… 
+Abnormal softnes…
+An area of tissue…
+A congenital vasc…
+Decreased volume…
+It means the absen…
+Hydrocephalus is …….Coupled Vision -Language Perception
+Multi -Head AttentionAdd & NormMulti -Head AttentionAdd & NormFeed ForwardAdd
+n×Imaging -Report 
+Alignment
+Imaging -Report 
+AlignmentImaging -Report 
+Alignment
+Text
+Encoder
+Contrastive
+Loss Average Pooling 
+Frozen
+Figure 2: The illustration of our pre-training framework UniBrain. We utilize four transverse MRI
+modalities, namely T1WI, T2WI, T2FLAIR, DWI, and case reports to train UniBrain. In this
+framework, we first align the modality-wise imaging-report feature, then we project the concatenated
+features to vision-language semantic space, and align the global imaging-report feature. Finally, the
+global image feature acts as the key and value, and the disease description set acts as the query for
+the coupled vision-language perception module to produce the final multi-class classification.
+We present an example of the brain MRI report in Fig. 1 (left), which consists of two components:
+report findings andreport impression . As shown in report findings, we can find the information
+focus on different aspects. For example, signal intensities directly correlate to each modality from
+the description “patchy abnormal signals can be seen next to the right lateral ventricle, showing
+hypointensity on T1WI, hyperintensity on T2WI, T2FLAIR, and DWI" or morphology changes
+on different anatomies from “the brain cisterns and ventricles are slightly enlarged" and “the sulci
+widened and deepened". In report impression, it provides the disease conclusion and the corresponding
+located anatomies e.g., “Acute cerebral infarction adjacent to the right lateral ventricle".
+Motivated by this observation in the MRI report, we propose to decompose the report into some
+structured formats and build a hierarchical knowledge-enhancement for pre-training.
+3.3 Automatic Report Decomposition
+As shown in Fig. 1, we propose an automatic report decomposition (ARD) pipline, which consists of
+two steps: 1) entity extraction . Extract the most critical entities according to radiologist experience
+and reformulate them into structured formats; 2) entity grouping . Assign the structured sentences
+into modality-wise and global reports, and further get the disease labels for classification. Then, the
+reports will be applied in the proposed pre-training architecture in Fig. 2.
+3.3.1 Entity Extraction
+In this step, we aim to select informative entities from the report to avoid the interference of extraneous
+words and complex grammar. Specifically, we follow the radiologist experience to define 6 kinds of
+entities, i.e., anatomy ,side,modality ,signal ,morphology , and pathology .
+Then, given a brain MRI report rwith a set of sentences, i.e. r={s1, s2, ..., s M}, we independently
+extract entities for each sentence, and convert the sentence to one of the following structured formats:
+1)SIG={[morphology] [modality] [signal] ‘on’ [side] [anatomy]} , which indicates the information
+about modality signal, such as ‘Patchy DWI hyperintensity on right lateral ventricle’; 2) MORPH =
+{[anatomy] [morphology]} , which captures morphological changes on anatomies such as ‘The sulci
+widened’; 3) PATHO ={[pathology] ‘is located at’ [anatomy]} , which reflects pathological changes
+such as ‘Acute cerebral infarction is located at lateral ventricle’. Note that, when any certain entity
+type in SIG,MORPH orPATHO is absent, we will replace it with an empty string.
+If no anatomy is specified, PATHO follows {[pathology]} .
+43.3.2 Entity Grouping
+This step correlates each structured sentence with modalities so that we can build a hierar-
+chical (modality-wise and global) enhancement to improve pre-training. Specifically, let r=
+{s1,s2, ...,sM}denote the structured report after the entity extraction step. For each sm, if it follows
+theSIGformat, we then add it to the corresponding modality-wise collection rkfollowing the rule as
+below:
+rk←rk∪ {sm},if modality koccurs in sm. (1)
+If it follows MORPH orPATHO format, we add it to every modality-wise collection following another
+rule as below:
+rk←rk∪ {sm},∀k∈ {1,2, ..., K}. (2)
+After ARD, we can acquire the structured modality-wise reports {r1,r2, . . . ,rK}and global report
+r, which are used in the following pre-training.
+3.4 Hierarchical Knowledge-enhanced Pre-training
+Considering the characteristic of brain MRI data, we propose a hierarchical knowledge-enhanced
+pre-training framework, which consists of three important components: 1) the modality-wise imaging-
+report alignment promotes the modality-wise knowledge efficiently encoded into the modality
+representation; 2) the subsequent global imaging-report alignment strengthens the interaction of
+multiple modality representations, yielding a more comprehensive merged representation; 3) the
+final coupled vision-language perception module compatible with the universal brain disease, and
+progressively matches the imaging patches with a disease query to generate the fine-grained grounding
+and the coarse-grained diagnosis.
+The details are as follows. First, regarding the imaging modalities, as the abnormal signal intensities
+have same definition, we use a shared image encoder to extract the modality-wise visual representation.
+Concretely, we denote the latent visual representation of each modality as follows,
+uk=ϕproj(ϕimage(xk))∈Rl×d, k∈ {1,2, .., K}, (3)
+where ϕimage(·)follows the structure of ResNet3D [ 36] and we adopt the output of the penultimate
+layer as the original image patch embedding, ϕproj(·)is a Multilayer Perceptron (MLP) to project the
+original image patch embedding to the vision-language semantic space, ldenotes the image patch
+number and dis the embedding dimension of each image patch.
+Regarding the report information, we use a text encoder to extract the modality-wise and global report
+features as below,
+vk=ϕtext(rk)∈Rd, k∈ {1,2, ..., K},
+v=ϕtext(r)∈Rd.(4)
+To leverage the relationship among medical entities, we use a MedKEBERT [ 13] pretrainined on
+Unified Medical Language System (UMLS) data [46] as ϕtext(·), and freeze its parameters.
+3.4.1 Modality-wise Imaging-report Alignment
+In this component, we perform a modality-wise alignment between ukandvk(k∈ {1,2, .., K}) as
+shown in Fig. 2. Intuitively, by leveraging modality-wise report reference, the modality-wise vision
+clues can be sufficiently distilled into the corresponding representation. Given a minibatch of B
+imaging-report pairs, the modality-wise alignment is conducted in the following
+ℓk=1
+BBX
+i=11
+Ω(i) 
+lneˆ ui⊤
+kvi
+k/τ
+PB
+j=1eˆ ui⊤
+kvj
+k/τ+ lnevi⊤
+kˆ ui
+k/τ
+PB
+j=1evi⊤
+kˆ uj
+k/τ!
+, (5)
+In MRI imaging, hyperintensity always means abnormally higher signal intensities and hypointensity always
+means abnormally lower signal intensities, which applies to all MRI modalities.
+5where Ω(i)measures the number of reports same to the i-th report in the mini-batch, ˆ ui
+k=
+ϕpool(ui
+k)∈Rdthat pools the embedding along the patch dimension for each k-th modality imaging,
+andτis the learnable temperature parameter. Note that, we follow the CLIP loss [ 30] to build
+a formulation of bidrectional constrast learning, namely, one image-to-text contrast term and one
+text-to-image contrast term in Eq. (5).
+3.4.2 Global Imaging-report Alignment
+In this global imaging-report alignment, we first summarize the modality-wise feature evidences,
+i.e.,{u1,u2, ...,uK}, to acquire a global feature vector u, which is modeled by the the following
+projection
+u=ϕfuse(u1,u2, ...,uK)∈Rl×d. (6)
+where ϕfuse(·)is a linear neural layer mapping one input in Rl×K×dto one output in Rl×d. Then,
+together with the previous global report embedding v, we can perform a contrastive learning similar
+to Eq. (5)but in a global view. The loss for the global imaging-report alignment can be formulated as
+follows
+ℓg=1
+BBX
+i=11
+Ω(i) 
+lneˆ ui⊤vi/τ
+PB
+j=1eˆ ui⊤vj/τ+ lnevi⊤ˆ ui/τ
+PB
+j=1evi⊤ˆ uj/τ!
+, (7)
+where Ω(i)is same to that in Eq. (5)andˆ ui=ϕpool(ui)∈Rdthat pools the global embedding
+along the patch dimension. By performing such a global alignment, we can efficiently learn complex
+disease patterns beyond the modal-wise evidences.
+3.4.3 Coupled Vision-Language Perception
+Regarding the diagnosis component, instead of the straightforward discrminative prediction, we adopt
+a coupled vision-language perception module (CVP) via a transformer decoder-based structure [ 37]
+as shown in Fig. 2. Specifically, we use the global imaging embedding uas key, value and use the
+pre-trained text encoder mentioned in previous sections to encode the disease descriptions Qas
+queries. The disease-attentive embedding for the brain MRI on the disease set Qis generated as
+follows
+h=ϕCVP(u, ϕtext(Q))∈RC×d, (8)
+where Q={q1, .., q C}is a collection of disease descriptions generated by UMLS, Cis the number of
+queried diseases, and ϕCVP(·,·)is the transformer decoder. Note that, such a design enjoys two merits:
+1) we can apply any type of brain disease if it can be expressed by UMLS with the proper descriptions.
+This aligns our goal about the universal brain diagnosis. 2) In the progressive transformation with
+the attention mechanism, the response of each image patch can be explicitly characterized, which
+provides us some evidence about some specific disease. Specially, we can visualize the class activation
+map (CAM) [ 49] on the latent patch features to make the diagnosis attribution. Finally, his fed to a
+classifier to output a prediction p∈RCforCdiseases. The classification loss is formulated in the
+following
+ℓbce=1
+BBX
+i=11
+CCX
+c=1 
+yi
+clnpi
+c+ (1−yi
+c) ln(1−pi
+c)
+, (9)
+where [p1, p2, . . . , p C] =ϕclassifier (h)modeled by an MLP layer, and yireflects whether the report
+impression has the corresponding pathology.
+3.4.4 Training, Inference and Beyond
+In the aforementioned subsections, we proposed three losses corresponding to different roles in hier-
+archical knowledge enhanced pre-training. Putting all together, our training objective is formulated
+as
+L=ℓbce+1
+K+ 1 
+ℓg+KX
+k=1ℓk!
+. (10)
+After ARD, there are some structured reports that can be totally same. This term guarantees to debias cross
+positive pairs in the mini-batch if repeated structured reports exists, otherwise Ω(i) = 1 .
+6Note that, in the above equation, we have not introduced hyperparameters to balance different loss
+terms. This is because that we find maintaining them equally can work well. We tried to balance loss
+terms with different weights, which is comparable or not better than Eq. (10). During inference phase,
+we can directly manipulate the diseases of interest with the proper description in Q, and forward to
+UniBrain to have the predictions. Besides, as our ϕCVPis based on transformer decoder structure, one
+can input queries of any length without changing the pre-trained weights of UniBrain, making it easy
+for zero-shot diagnosis on unseen categories. When fine-tuning on the downstream dataset, one can
+accordingly modify the disease query set and train the networks with or without ℓgandℓkdepending
+on whether the report is available. The results in the following section will sufficiently demonstrate
+UniBrain can generalize well under open-class and domain shift.
+4 Experiments
+To evaluate our method, we conduct experiments on four diverse datasets of which three are real
+world medical imaging datasets, one is public dataset BraTS2019. We compare the method against
+multiple baselines to verify the diagnosis and generalization performance of UniBrain.
+4.1 Datasets and Evaluation Metrics
+4.1.1 Pre-training Dataset
+•Shanghai Sixth People’s Hospital Dataset (SSPH) : We collected 24,770 brain MRI
+imaging-report pairs at Shanghai Sixth People’s Hospital in the study. Here, all MRI scans
+were performed on one of the eight MRI scanners (GE Medical Systems Signa Pioneer,
+Philips Medical Systems EWS, Philips Medical Systems Ingenia, Siemens Prisma, Siemens
+Skyra, Siemens Verio, UIH uMR 780, UIH uMR 790) from January 2019 to March 2023
+at Shanghai Sixth People’s Hospital. Each data has a case report and four transverse MRI
+modalities: T1WI, T2WI, T2FLAIR and DWI. The dataset has 13 categories: normal,
+lacunar cerebral infarction, brain atrophy, white matter lesions, acute cerebral infarction,
+chronic cerebral infarction, metastasis, brain hemorrhage, epidura and subdural hemorrhage,
+meningioma, hemangioma, glioma and hydrocephalus. The category distribution is severely
+imbalanced as shown in Fig. 3. Note that, such an imbalanced distribution is common in
+real-world hospital data due to the disease morbidity and the specialization of hospitals in
+diagnosing diseases.
+4.1.2 Downstream Datasets
+•BraTS2019 Dataset : We use the BraTS2019 dataset [ 10] that has four MRI modalities:
+T1WI, T2WI, T2FLAIR, and T1 contrast-enhanced (T1CE), to test the zero-shot or finetun-
+ing performance of UniBrain. There are 259 volumes of high-grade glioma (HGG) and 73
+volumes of low-grade glioma (LGG), which can be directly used for zero-shot evaluation.
+Regarding the finetuning setting, we split BraTS2019 into training and testing under the
+ratio of 7:3 following the way in [5].
+•Affiliated Hospital of Nantong University Dataset (AHNU) : This dataset is collected
+from Affiliated Hospital of Nantong University, consisting of 706 MRI imagings under 4
+modalities: T1WI, T2WI, T2FLAIR, DWI. It contains 13 categories same to those in our
+pre-training dataset. We mainly use this dataset to test the generalization ability of UniBrain
+under domain shift.
+•Wuhan Hankou Hospital Dataset (WHH) : It is collected from Wuhan Hankou Hospital,
+which has 618 MRI imagings of 13 categories in SSPH under 4 modalities: T1WI, T2WI,
+T2FLAIR, DWI. We use this dataset to test the generalization ability of UniBrain under
+domain shift.
+This study has been approved by the Ethics Committee of Shanghai sixth people’s Hospital [IRB code: 2023-
+KY-082 (K)].
+This modality has not occurred on the SSPH dataset.
+7/uni0000002f/uni00000044/uni00000046/uni00000011 /uni00000025/uni00000055/uni00000044/uni00000011 /uni0000003a/uni0000004b/uni0000004c/uni00000011 /uni00000024/uni00000046/uni00000058/uni00000011 /uni00000026/uni0000004b/uni00000055/uni00000011 /uni00000031/uni00000052/uni00000055/uni00000011 /uni00000030/uni00000048/uni00000057/uni00000011 /uni00000030/uni00000048/uni00000051/uni00000011 /uni00000025/uni00000055/uni0000004b/uni00000011 /uni0000002b/uni00000048/uni00000050/uni00000011 /uni00000028/uni00000053/uni0000004c/uni00000011 /uni0000002a/uni0000004f/uni0000004c/uni00000011 /uni0000002b/uni0000005c/uni00000047/uni00000011
+/uni00000025/uni00000055/uni00000044/uni0000004c/uni00000051/uni00000003/uni00000030/uni00000035/uni0000002c/uni00000003/uni00000026/uni00000044/uni00000057/uni00000048/uni0000004a/uni00000052/uni00000055/uni0000005c/uni00000013/uni00000015/uni00000018/uni00000013/uni00000013/uni00000018/uni00000013/uni00000013/uni00000013/uni0000001a/uni00000018/uni00000013/uni00000013/uni00000014/uni00000013/uni00000013/uni00000013/uni00000013/uni00000024/uni00000050/uni00000052/uni00000058/uni00000051/uni00000057/uni00000057/uni00000055/uni00000044/uni0000004c/uni00000051
+/uni00000059/uni00000044/uni0000004f/uni0000004c/uni00000047/uni00000044/uni00000057/uni0000004c/uni00000052/uni00000051
+/uni00000057/uni00000048/uni00000056/uni00000057Figure 3: The category distribution of the train
+subset, the validation subset and the test subset
+in SSPH. The first three letters are used as the
+shorthand of each class except for “Brain Atrophy”
+and “Brain hemorrhage” that we denote by "Bra"
+and "Brh" respectively.Method 2D/3DData
+TypeMulti-
+ModalityVLP
+ConVIRT [48] 2D X ray ✔
+CheXZero [35] 2D X ray ✔
+MedKLIP [40] 2D X ray ✔
+KAD [46] 2D X ray ✔
+TransMed [11] 3D MRI ✔
+DSM [5] 3D MRI
+UniBrain 3D MRI ✔ ✔
+Table 1: Setting Summary of UniBrain and base-
+lines. The setting includes 2D/3D inputs, Data
+Type, Multi-modality, VLP. UniBrain is the first
+work using visual-language pre-training on 3D
+multi-modality brain MRI data.
+4.1.3 Evaluation Metrics
+We respectively use area under curve (AUC), Accuracy (ACC), Average Precision (AP) and F1-score
+(F1) for each category and their average number, i.e.average AUC (aAUC), average Accuracy
+(aACC), average F1-score (aF1) and mean Average Precision (mAP), as our evaluation metrics. These
+metrics are calculated as follows:
+aAUC =1
+CCX
+c=1AUC c,
+aACC =1
+CCX
+c=1TPc+TNc
+TPc+FPc+TNc+FNc,
+aF1=1
+CCX
+c=12TPc
+2TPc+FPc+FNc,
+mAP =1
+CCX
+c=1APc,(11)
+where TPc,FNc,TNc,FPcdenote number of true positive, false negative, true negative, false positive
+samples for the c-th category respectively, and AUC c,APcare the common AUC performance and
+AP performance of the c-th category that can be easily calculated in the standard python API.
+4.2 Pre-training Details
+SSPH is split into 3:1:1 for training, validation, and test, and each modality input is resized to 224
+×224×24. For all our experiment, 3DSeg-8 pre-trained ResNet3D-34 [ 9] is used as the default
+image encoder of UniBrain. We will also discuss the impact of the image encoder in Section 5. The
+learnable temperature parameter τis intialized the same as [ 46]. We set the number of Transformer
+decoder blocks in ϕCVPas 4 with 4 heads. For baselines in the experiments, we strictly followed the
+architectures described in the original papers.
+Our UniBrain is implemented in Pytorch and trained with 2 NVIDIA A100 GPUs (each has 80GB
+memory) for 100 epochs from scratch with a batch size of 16. We adopt the Adam optimizer and
+its initial learning rate is set to 0.0002 with a poly learning rate schedule, in which the initial rate
+decays by each epoch with a power 0.9. For data augmentation, we use the following operations: (1)
+random mirror fipping across the axial, coronal and sagittal planes by a probability of 0.5; (2) random
+intensity shift in [-0.1, 0.1] and scale in [0.9, 1.1]. The L2 Normalization is also applied for model
+regularization with a weight decay rate of 1e-5.
+8Table 2: Comparison of UniBrain with the baselines in terms of aAUC, aACC, aF1 and mAP. We use
+the first three letters to represent each class except for “Brain Atrophy” and “Brain hemorrhage” that
+we use "Bra" and "Brh" respectively. Numbers within parentheses indicate 95% confidence intervals
+(CI) and the best results for each column are marked in bold.
+Method Lac. Bra. Whi. Acu. Chr. Nor. Met. Brh. Epi. Men. Hem. Gli. Hyd. aAUC aACC aF1 mAP
+ConvVIRT [48] 46.23 72.75 74.10 65.20 32.79 93.53 62.39 70.23 48.13 61.28 63.90 83.93 51.08 63.50 79.54 38.57 28.87
+CheXZero [35] 34.45 86.71 78.53 41.59 30.83 87.95 67.94 62.66 55.06 60.85 57.67 79.81 85.66 63.83 76.63 36.16 27.51
+TransMed [11] 83.81 91.25 85.91 70.97 77.41 91.10 56.63 57.19 62.09 59.48 54.83 69.00 67.77 71.34 81.48 36.08 32.77
+MedKLIP [40] 88.06 91.22 91.33 90.56 81.86 95.24 77.82 82.89 78.33 75.61 68.66 81.26 88.18 83.93 89.17 48.87 45.88
+KAD [46] 87.88 92.46 92.67 90.25 81.85 95.68 80.76 85.37 80.60 74.27 74.27 68.94 89.56 85.57 90.61 52.09 50.33
+UniBrain 90.35 94.48 94.27 96.1 88.17 96.61 89.32 91.43 93.50 79.13 73.1 93.75 97.63 90.71 92.62 62.27 63.27
+(95% CI)(89.39,
+91.30)(93.85,
+95.10)(93.63,
+94.91)(95.42,
+96.78)(86.93,
+89.40)(96.09,
+97.13)(87.57,
+91.07)(89.27,
+93.58)(91.09,
+95.90)(76.46,
+81.80)(69.53,
+76.67)(89.74,
+97.76)(96.12,
+99.13)(90.11,
+91.31)(92.08,
+93.16)(60.71,
+63.82)(61.42,
+65.11)
+4.3 Baselines
+We consider a range of baselines in comparison: 1) multi-modal MRI classification model:
+TransMed [ 11]; 2) VLP models: ConVIRT [ 48], CheXZero [ 35], MedKLIP [ 40], KAD [ 46], which
+are the most advanced methods that apply VLP to medical domain. For the comparison on BraTS2019,
+we also include DSM [ 5] which achieves the best result on tumor classification on BraTS2019. Each
+method is introduced in the following and summarized in Table ??.
+•ConVIRT [48] learns the medical visual representations through bidirectional contrast from
+the image-text pairs.
+•CheXZero [35] fine-tunes the pre-trained CLIP model with the image-text pairs in the
+medical domain.
+•MedKLIP [40] incorporates the specific medical domain knowledge to enhance the pre-
+training process.
+•KAD [46] utilizes the medical knowledge graph to promote the VLP on chest X-ray data.
+•TransMed [11] combines CNN and Transformer to improve the parotid gland tumor
+classification through multi-modal MRI imagings.
+•DSM [5] uses two spatiotemporal models to classify different types of brain tumours, and
+has shown a promising and competitive performance on the BraTS2019 dataset.
+4.4 Quantitative Results
+Here, we first use the SSPH training set as the pre-training data for UniBrain and other baseline
+methods [ 48,35,11,40,46], and test their aAUC, aACC, aF1, and mAP on the SSPH test set. The
+results presented in Table 2 demonstrate the superior performance of UniBrain across all metrics
+examined.
+4.4.1 UniBrain outperforms the SOTA diagnosis model
+When compared to TransMed, another multi-modal MRI diagnosis model, UniBrain achieves sig-
+nificant improvements in aAUC, aACC, aF1, and mAP by 19.37%, 11.14%, 26.19%, and 30.5%,
+respectively. When compared to the SOTA VLP model KAD, our method outperforms it by 5.14%,
+2.01%, 10.18%, and 12.94% in aAUC, aACC, aF1, and mAP, respectively. These results highlight
+the advantages of using multi-modal data in a hierarchical enhancement manner for pre-training.
+4.4.2 UniBrain is robust to the imbalanced dataset
+What is particularly noteworthy regarding UniBrain is its substantial improvement on aF1 and mAP
+when compared to the SOTA models. This shows the robustness of UniBrain when the dataset
+is quite imbalance like Fig. 3. In particular, UniBrain achieves significant improvements in eight
+minority disease types including acute cerebral infarction, chronic cerebral infarction, metastasis,
+brain hemorrhage, epidural and subdural hemorrhage, meningioma, glioma, and hydrocephalus,
+which comprise less than 20% of the entire dataset.
+9Figure 4: UniBrain achieves the comparable performance on five categories, namely, acute cerebral
+infarction, glioma, hydrocephalus, metastasis and normal, compared to two brain MRI radiologists
+with 3 and 12 years of clinical experience respectively.
+Hemangioma
+Chronic cerebral infarction
+Epidura and subdural hemorrhage
+Metastasis
+(a) UniBrain (b) KAD
+White matter lesions
+Hydrocephalu
+MeningiomaLacunar cerebral infarction(a) UniBrain (b) KAD (a) UniBrain (b) KAD
+Hemangioma
+Figure 5: We present the original image (left) and the corresponding attention map generated by
+UniBrain (column (a)) and KAD (column (b)) respectively. In the original images, lesion areas
+annotated by radiologists are highlighted by red boxes. In the attention maps, a color spectrum
+ranging from red to blue is overlaid on the original image, where red represents regions of high
+attention and blue represents regions of low attention.
+4.4.3 UniBrain is comparable to radiologists on certain categories
+We invite two brain MRI radiologists with 3-year and 12-year clinical experience respectively as
+our human baseline on 13 categories. We find that UniBrain achieves the comparable results on 5
+categories, namely, acute cerebral infarction, glioma, hydrocephalus, metastasis and normal compared
+to the radiologists as shown in Fig. 4. This result demonstrates the great potential for UniBrain to
+apply to the clinical diagnosis.
+4.5 Qualitative Results
+In Fig. 5, we visualize the classification clues by illustrating the original image and the corresponding
+attention map generated by UniBrain (shown in column (a)) and KAD (shown in column (b))
+respectively. As can be seen, in the original images, lesion areas annotated by radiologists are
+highlighted by red boxes. In the attention maps, a color spectrum ranging from red to blue is overlaid
+on the original image, where red represents regions of high attention and blue represents regions of low
+attention. Notably, we observed that when different disease queries were inputted, compared to KAD,
+UniBrain generated attention maps that focused on disease-specific lesions more accurately. This
+grounding performance suggests that our hierarchical knowledge-enhanced framework does improve
+the pre-training performance with the merits of interpretation, which is essential for AI-assisted
+applications. With this, clinicians can better understand AI predictions and make collaboration in the
+computer-aided clinical diagnosis.
+10Table 3: Comparison of UniBrain with SOTA medical pre-training models on two external in-house
+datasets. ZS means zero-shot result. The best results are in bold.
+MethodAHNU WHH
+aAUC aACC aF1 mAP aAUC aACC aF1 mAP
+MedKLIP-ZS [40] 62.00 54.67 39.89 33.47 59.04 48.62 37.99 30.68
+TransMed-ZS [11] 67.96 62.72 41.77 36.98 65.37 61.72 41.29 34.78
+KAD-ZS [46] 77.29 73.25 50.52 46.38 78.44 75.34 52.48 47.58
+UniBrain-ZS 86.23 87.03 61.82 62.13 86.50 85.87 62.87 60.09
+Table 4: Comparison between Finetuned UniBrain (termed as UniBrain-FT) and previous SOTA
+method DSM [ 5] on BraTS2019 and the zero-shot comparison between UniBrain (marked as
+UniBrain-ZS) and KAD (marked as KAD-ZS). For DSM, we use the paper’s result. The best
+results are in bold.
+MethodBraTS2019
+aAUC aACC aF1 mAP
+DSM [5] - - 90.36 -
+KAD-ZS [46] 50.52 51.48 62.54 50.27
+UniBrain-ZS 62.77 59.11 64.88 58.09
+UniBrain-FT 94.29 93.75 91.97 94.03
+4.6 Generalization
+4.6.1 Generalization on the open-class setting
+We further verify UniBrain under the open-class setting with BraTS2019. Specifically, we compared
+the performance of UniBrain on diagnosing HGG and LGG with that of the SOTA method DSM [ 5]
+in Table 4. We use the same training and test set reported in DSM paper and thus derive the DSM
+baseline from the reported results (only F1 score is reported) in the original paper. It is important to
+note that LGG and HGG on BraTS2019 have not appeared in the categories of our pre-training data,
+and T1CE modality of BraTS2019 is not used during our pre-training.
+In addition, as there are no reports on BraTS2019, we only finetune UniBrain with ℓbce.
+According to Table 4, UniBrain achieved a superior performance compared to KAD [ 46] under the
+zero-shot setting. Besides, UniBrain finetuned on BraTS2019 also surpassed DSM [ 5], showcasing
+its ability as a foundation model for open-class diagnosis.
+4.6.2 Generalization on the domain shift setting
+To study the performance of UniBrain under the domain shift setting, we verified the pre-training
+models on AHNU and WHH which have same categories as SSPH but with the covariate shift.
+We test the zero-shot results to assess the generalization ability of UniBrain compared with two
+VLP models and TransMed. Table 3 suggests the remarkable potential of UniBrain across different
+hospitals, which can be a promising prospect.
+5 Ablation Study
+In this section, we conduct a thorough ablation study for UniBrain to understand the performance
+impact of the individual components, namely, ARD, visual-language encoders and hierarchical
+knowledge-enhancement. The ablation results of different components are summarized in Table 6,
+which we will explain in details for each component in the following.
+Please refer to the dataset description in the previous paragraph for details.
+115.1 Effectiveness of Automatic Report Decomposition
+5.1.1 Effectiveness of hierarchical report extraction
+To show the effectiveness of the proposed ARD, we compare it with ChatGPT [ 3]. Specially, we
+provide the predefined decomposition examples as demonstrations to ask ChatGPT to perform the
+report decomposition, and provide the results in the rows w.r.t. “w/ chatGPT report" of Table 6. As
+can be seen, compared to ChatGPT [ 3], ARD shows the superior performance with increases in
+aAUC, aACC, aF1, and mAP by 0.93%, 0.15%, 0.75%, and 1.36% respectively. It suggests that the
+proper human experience and labor in the extraction make the report decomposition more informative
+and efficient.
+5.1.2 Effectiveness of disease label extraction
+As aforementioned in previous section, we directly generate the label for each MRI sample by check-
+ing whether the report impression contains the corresponding pathology. We verify our generation
+process with an evaluation set of 250 samples. In this set, experienced radiologists provided the
+gold standard disease labels for each imaging-report pair. The performance of ARD in disease label
+extraction was evaluated by comparing with the gold standard labels on the evaluation set, under on
+the tasks of mention and negation detection measured by the F1 score. Specially, mention detection
+should give a positive label if the gold standard shows the patient gets the certain disease, while
+negation detection should give a positive label if the gold standard shows the patient does not have the
+certain disease. The results in Table 5 reveal that ARD reaches a competitive precision in extracting
+disease labels from report impression.
+5.2 Performance under Different Encoders
+In UniBrain, we adopted ResNet3D 34 as the image encoder. Here, we verify the performance of
+ResNet3D 50 to see how network depth affects the results. Regarding the text encoder, we substitute
+MedKEBERT [ 46] in UniBrain with clinicalBERT which is pre-trained on clinical notes [ 15], to
+validate its efficiency. As shown in the rows w.r.t. encoders of Table 6 (w/ ResNet3D 50, w/
+clinicalBERT), we can find that the depth 50 of image encoder does not show the significant different
+with the depth 34 in UniBrain. However, changing text encoder to clinicalBERT [ 15] leads to the
+degraded performance, since UMLS is a more structured knowledge corpora than clinical notes. This
+suggests pre-training the text encoder with the well-organized knowledge base is critical to enhance
+the VLP.
+5.3 On Hierarchical Knowledge-enhancement
+5.3.1 Effectiveness of hierarchical imaging-report alignment
+As shown in Table 6, we can observe a significant drop in performance when all imaging-report
+alignments are absent, i.e.eliminating ℓgand all ℓkin Eq. (10). It suggests that the process of
+knowledge-enhancement helps learn better cross-vision-language representations, resulting in the
+improvement. Furthermore, when only keeping the global imaging-report alignment ( i.e., w/o
+modality-wise alignment), the results are better than removing all imaging-report alignments but
+worse than the complete UniBrain. This indicates the effectiveness of the hierarchical imaging-report
+alignment during pre-training.
+5.3.2 Effectiveness of the coupled vision-language perception
+Finally, we verified the effect of the CVP module in UniBrain. According to Table 6, removing CVP
+degrades the performance (w/o CVP) significantly in aF1 and mAP, which shows the importance of
+CVP in transforming the global image features into disease-specific classification features. Besides,
+we explore the impact of the query form for CVP by conducting an additional experiment with
+using the disease name instead of the disease description as Q. From the results of Table 6 w.r.t.,
+w/o disease description query, we can find that the model using the disease description as the query
+significantly outperforms the model using the disease name. We attribute this to the fact that the
+An complete prompt follows this format: Report decomposition introduction #Decomposition demonstrations #Reports to
+be decomposed .
+12Table 5: The label extraction performance of ARD on the test set for mention and negation detection.
+The Macro-average and Micro-average rows are computed over all 13 classes.
+Category Mention F1 Negation F1
+Lacunar cerebral infarction 100.00 100.00
+Brain atrophy 100.00 100.00
+White matter lesions 100.00 100.00
+Chronic cerebral infarction 100.00 100.00
+Normal 100.00 100.00
+Metastasis 100.00 100.00
+Hydrocephalus 100.00 100.00
+Brain hemorrhage 81.25 98.74
+Acute cerebral infarction 72.72 98.77
+Epidura and subdural hemorrhage 96.43 99.56
+Meningioma 95.65 99.57
+Hemangioma 97.77 99.78
+Glioma 92.31 99.79
+Micro-average 97.32 99.70
+Macro-average 95.09 99.71
+Table 6: Ablation study of UniBrain. The best results are in bold.
+Methods aAUC aACC aF1 mAP
+Ablation of ARD
+w/ chatGPT report 89.78 92.47 61.52 61.91
+Ablation of encoders
+w/ clinicalBERT [15] 89.63 92.11 59.59 59.81
+w/ ResNet3D 50 90.62 92.77 62.00 62.86
+On hierarchical knowledge-enhancement
+w/o all imaging-report alignments 89.27 92.27 61.46 61.50
+w/o modality-wise alignment 89.87 92.07 61.40 60.68
+w/o disease description query 84.62 83.64 51.73 48.29
+w/o CVP 89.85 92.27 60.61 60.66
+UniBrain 90.71 92.62 62.27 63.27
+disease description provides more comprehensive information, allowing the text feature to pay more
+robust attention on the image features.
+6 Discussion
+6.1 Clinical Impact Analysis
+UniBrain is primarily dedicated to more general brain disease diagnosis, and our experiments
+demonstrate that UniBrain outperforms the current state-of-the-art methods in diagnosis accuracy
+and interpretation. We consider UniBrain as a promising avenue for computer-aided diagnosis
+in brain MRI, potentially enhancing the productivity and alleviating the workload of radiologists.
+Additionally, the adaptable input query length of CVP enables UniBrain to seamlessly extend to a
+range of downstream tasks. Experiments in Section 4.6 shows the competitive performance even in
+challenging scenarios involving open-class and domain shift settings, thus broadening the scope of
+UniBrain in clinical applications.
+6.2 Limitations and Future Work
+Despite the effectiveness, there remains a few limitations to UniBrain: 1) the report primarily
+comprises abnormal observations, while the image contains both the normal and abnormal patches.
+13Figure 6: Comparison of full-modality with modality absence situations in terms of aAUC, aACC,
+aF1 and mAP.
+Consequently, the current alignment of imaging and report may lead to the overfitting between
+normal image patches with the abnormal observations in the report. More explorations can take
+this point into consideration in the future to improve the alignment mechanism; 2) UniBrain can
+be greatly affected by the modality absence as shown in Fig. 6, which is a common problem in the
+real-world scenarios. As it is hard to guarantee the full modalities in some cases, it will be important
+to consider the robustness of the pre-training models to handle this problem. 3) UniBrain lacks
+the capability of the pixel-level lesion segmentation. As a prospective direction, the objective is to
+develop an integrated brain MRI diagnosis system that entails both classification and pixel-level
+lesion segmentation capabilities for multiple types of diseases.
+7 Conclusion
+In this work, we propose a hierarchical knowledge-enhanced pre-training framework named UniBrain
+for the general diagnosis of brain disorders. First, we design an automatic report decomposition
+method to efficiently extract the important pieces of report for pre-training. Second, we perform a
+hierarchical imaging-report alignment to achieve a fine-grained knowledge enhancement. Lastly, we
+input the global image features and disease query set into the coupled vision-language perception
+module to generate the final diagnosis and grounding. Experiments show UniBrain not only out-
+performs SOTA methods on both in-house and public datasets under open-class and domain shift
+settings but also yields comparable performance on certain categories compared to human experts.
+References
+[1]Nagwa M. Aboelenein, Piao Songhao, Anis Koubaa, Alam Noor, and Ahmed Afifi. Httu-net:
+Hybrid two track u-net for automatic brain tumor segmentation. IEEE Access , 8:101406–101415,
+2020. doi: 10.1109/ACCESS.2020.2998601.
+[2]Benedikt Boecking, Naoto Usuyama, Shruthi Bannur, Daniel C Castro, Anton Schwaighofer,
+Stephanie Hyland, Maria Wetscherek, Tristan Naumann, Aditya Nori, Javier Alvarez-Valle,
+et al. Making the most of text semantics to improve biomedical vision–language processing. In
+European conference on computer vision , pages 1–21. Springer, 2022.
+[3]Tom Brown et al. Language models are few-shot learners. Advances in neural information
+processing systems , 33:1877–1901, 2020.
+[4]DH Chaihtra and S Vijaya Shetty. Alzheimer’s disease detection from brain mri data using deep
+learning techniques. In 2021 2nd Global Conference for Advancement in Technology (GCAT) ,
+pages 1–5, 2021. doi: 10.1109/GCAT52182.2021.9587756.
+[5]Soumick Chatterjee, Faraz Ahmed Nizamani, Andreas Nürnberger, and Oliver Speck. Classifi-
+cation of brain tumours in mr images using deep spatiospatial models. Scientific Reports , 12(1):
+1505, 2022.
+[6]Geeticka Chauhan, Ruizhi Liao, William Wells, Jacob Andreas, Xin Wang, Seth Berkowitz,
+Steven Horng, Peter Szolovits, and Polina Golland. Joint modeling of chest radiographs and
+radiology reports for pulmonary edema assessment. In Medical Image Computing and Computer
+14Assisted Intervention–MICCAI 2020: 23rd International Conference, Lima, Peru, October 4–8,
+2020, Proceedings, Part II 23 , pages 529–539. Springer, 2020.
+[7]Jieneng Chen, Yongyi Lu, Qihang Yu, Xiangde Luo, Ehsan Adeli, Yan Wang, Le Lu, Alan L
+Yuille, and Yuyin Zhou. Transunet: Transformers make strong encoders for medical image
+segmentation. arXiv preprint arXiv:2102.04306 , 2021.
+[8]Sihong Chen, Jing Qin, Xing Ji, Baiying Lei, Tianfu Wang, Dong Ni, and Jie-Zhi Cheng.
+Automatic scoring of multiple semantic attributes with multi-task feature leverage: a study on
+pulmonary nodules in ct images. IEEE transactions on medical imaging , 36(3):802–814, 2016.
+[9]Sihong Chen, Kai Ma, and Yefeng Zheng. Med3d: Transfer learning for 3d medical image
+analysis. arXiv preprint arXiv:1904.00625 , 2019.
+[10] Alessandro Crimi and Spyridon Bakas, editors. Brainlesion: Glioma, Multiple Sclerosis, Stroke
+and Traumatic Brain Injuries - 5th International Workshop, BrainLes 2019, Held in Conjunction
+with MICCAI 2019, Shenzhen, China, October 17, 2019, Revised Selected Papers, Part II ,
+volume 11993 of Lecture Notes in Computer Science , 2020. Springer.
+[11] Yin Dai et al. Transmed: Transformers advance multi-modal medical image classification.
+Diagnostics , 11(8):1384, 2021.
+[12] Leyuan Fang, Chong Wang, Shutao Li, Hossein Rabbani, Xiangdong Chen, and Zhimin Liu.
+Attention to lesion: Lesion-aware convolutional neural network for retinal optical coherence
+tomography image classification. IEEE transactions on medical imaging , 38(8):1959–1970,
+2019.
+[13] Yu Gu, Robert Tinn, Hao Cheng, Michael Lucas, Naoto Usuyama, Xiaodong Liu, Tristan
+Naumann, Jianfeng Gao, and Hoifung Poon. Domain-specific language model pretraining
+for biomedical natural language processing. ACM Transactions on Computing for Healthcare
+(HEALTH) , 3(1):1–23, 2021.
+[14] Ali Hatamizadeh, Yucheng Tang, Vishwesh Nath, Dong Yang, Andriy Myronenko, Bennett
+Landman, Holger R Roth, and Daguang Xu. Unetr: Transformers for 3d medical image
+segmentation. In Proceedings of the IEEE/CVF winter conference on applications of computer
+vision , pages 574–584, 2022.
+[15] Kexin Huang et al. Clinicalbert: Modeling clinical notes and predicting hospital readmission.
+arXiv preprint arXiv:1904.05342 , 2019.
+[16] Shih-Cheng Huang, Liyue Shen, Matthew P Lungren, and Serena Yeung. Gloria: A multimodal
+global-local representation learning framework for label-efficient medical image recognition. In
+Proceedings of the IEEE/CVF International Conference on Computer Vision , pages 3942–3951,
+2021.
+[17] Xin Huang et al. Dual-ray net: automatic diagnosis of thoracic diseases using frontal and lateral
+chest x-rays. Journal of Medical Imaging and Health Informatics , 10(2):348–355, 2020.
+[18] Sarfaraz Hussein, Kunlin Cao, Qi Song, and Ulas Bagci. Risk stratification of lung nodules
+using 3d cnn-based multi-task learning. In Information Processing in Medical Imaging: 25th
+International Conference, IPMI 2017, Boone, NC, USA, June 25-30, 2017, Proceedings 25 ,
+pages 249–260. Springer, 2017.
+[19] Jeremy Irvin, Pranav Rajpurkar, Michael Ko, Yifan Yu, Silviana Ciurea-Ilcus, Chris Chute,
+Henrik Marklund, Behzad Haghgoo, Robyn Ball, Katie Shpanskaya, et al. Chexpert: A large
+chest radiograph dataset with uncertainty labels and expert comparison. In Proceedings of the
+AAAI conference on artificial intelligence , volume 33, pages 590–597, 2019.
+[20] Eunji Jun, Seungwoo Jeong, Da-Woon Heo, and Heung-Il Suk. Medical transformer: Universal
+brain encoder for 3d mri analysis. arXiv preprint arXiv:2104.13633 , 2021.
+[21] Girish Katti, Syeda Arshiya Ara, and Ayesha Shireen. Magnetic resonance imaging (mri)–a
+review. International journal of dental clinics , 3(1):65–70, 2011.
+15[22] Jason P Lerch, André JW Van Der Kouwe, Armin Raznahan, Tomáš Paus, Heidi Johansen-Berg,
+Karla L Miller, Stephen M Smith, Bruce Fischl, and Stamatios N Sotiropoulos. Studying
+neuroanatomy using mri. Nature neuroscience , 20(3):314–326, 2017.
+[23] Jiangyun Li, Wenxuan Wang, Chen Chen, Tianxiang Zhang, Sen Zha, Jing Wang, and Hong
+Yu. Transbtsv2: Towards better and more efficient volumetric segmentation of medical images.
+arXiv preprint arXiv:2201.12785 , 2022.
+[24] Liu Li et al. Attention based glaucoma detection: A large-scale database and cnn model. In
+Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages
+10571–10580, 2019.
+[25] Chin-Fu Liu, Johnny Hsu, Xin Xu, Sandhya Ramachandran, Victor Wang, Michael I Miller,
+Argye E Hillis, and Andreia V Faria. Deep learning-based detection and segmentation of
+diffusion abnormalities in acute ischemic stroke. Communications Medicine , 1(1):61, 2021.
+[26] Lihao Liu, Zhening Huang, Pietro Liò, Carola-Bibiane Schönlieb, and Angelica I Aviles-
+Rivero. Pc-swinmorph: Patch representation for unsupervised medical image registration and
+segmentation. arXiv preprint arXiv:2203.05684 , 2022.
+[27] Matthew BA McDermott, Tzu Ming Harry Hsu, Wei-Hung Weng, Marzyeh Ghassemi, and
+Peter Szolovits. Chexpert++: Approximating the chexpert labeler for speed, differentiability,
+and probabilistic output. In Machine Learning for Healthcare Conference , pages 913–927.
+PMLR, 2020.
+[28] Masahiro Mitsuhara et al. Embedding human knowledge into deep neural network via attention
+map. arXiv preprint arXiv:1905.03540 , 2019.
+[29] Yifan Peng, Xiaosong Wang, Le Lu, Mohammadhadi Bagheri, Ronald Summers, and Zhiyong
+Lu. Negbio: a high-performance tool for negation and uncertainty detection in radiology reports.
+AMIA Summits on Translational Science Proceedings , 2018:188, 2018.
+[30] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal,
+Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, et al. Learning transferable visual
+models from natural language supervision. In International conference on machine learning ,
+pages 8748–8763. PMLR, 2021.
+[31] Val M Runge, Shigeki Aoki, William G Bradley Jr, Kee-Hyun Chang, Marco Essig, Lin Ma,
+Jeffrey S Ross, and Anton Valavanis. Magnetic resonance imaging and computed tomography
+of the brain—50 years of innovation, with a focus on the future. Investigative radiology , 50(9):
+551–556, 2015.
+[32] Akshay Smit et al. Chexbert: combining automatic labelers and expert annotations for accurate
+radiology report labeling using bert. arXiv preprint arXiv:2004.09167 , 2020.
+[33] Jiaxing Tan, Yumei Huo, Zhengrong Liang, and Lihong Li. Expert knowledge-infused deep
+learning for automatic lung nodule detection. Journal of X-ray Science and Technology , 27(1):
+17–35, 2019.
+[34] Yucheng Tang, Dong Yang, Wenqi Li, Holger R Roth, Bennett Landman, Daguang Xu, Vishwesh
+Nath, and Ali Hatamizadeh. Self-supervised pre-training of swin transformers for 3d medical
+image analysis. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern
+Recognition , pages 20730–20740, 2022.
+[35] Ekin Tiu, Ellie Talius, Pujan Patel, Curtis P Langlotz, Andrew Y Ng, and Pranav Rajpurkar.
+Expert-level detection of pathologies from unannotated chest x-ray images via self-supervised
+learning. Nature Biomedical Engineering , 6(12):1399–1406, 2022.
+[36] Du Tran et al. Learning spatiotemporal features with 3d convolutional networks. In Proceedings
+of the IEEE international conference on computer vision , pages 4489–4497, 2015.
+[37] Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez,
+Łukasz Kaiser, and Illia Polosukhin. Attention is all you need. Advances in neural information
+processing systems , 30, 2017.
+16[38] Kun Wang et al. Learning to recognize thoracic disease in chest x-rays with knowledge-guided
+deep zoom neural networks. IEEE Access , 8:159790–159805, 2020.
+[39] Chaoyi Wu, Xiaoman Zhang, Yanfeng Wang, Ya Zhang, and Weidi Xie. K-diag: Knowledge-
+enhanced disease diagnosis in radiographic imaging. arXiv preprint arXiv:2302.11557 , 2023.
+[40] Chaoyi Wu, Xiaoman Zhang, Ya Zhang, Yanfeng Wang, and Weidi Xie. Medklip: Medical
+knowledge enhanced language-image pre-training. medRxiv , pages 2023–01, 2023.
+[41] Yixuan Wu et al. D-former: A u-shaped dilated transformer for 3d medical image segmentation.
+Neural Computing and Applications , 35(2):1931–1944, 2023.
+[42] Madeleine K Wyburd et al. Teds-net: enforcing diffeomorphisms in spatial transformers to
+guarantee topology preservation in segmentations. In International Conference on Medical
+Image Computing and Computer-Assisted Intervention , pages 250–260. Springer, 2021.
+[43] Xiaozheng Xie, Jianwei Niu, Xuefeng Liu, Zhengsu Chen, Shaojie Tang, and Shui Yu. A survey
+on incorporating domain knowledge into deep learning for medical image analysis. Medical
+Image Analysis , 69:101985, 2021.
+[44] Yutong Xie, Yong Xia, Jianpeng Zhang, Yang Song, Dagan Feng, Michael Fulham, and
+Weidong Cai. Knowledge-based collaborative deep learning for benign-malignant lung nodule
+classification on chest ct. IEEE transactions on medical imaging , 38(4):991–1004, 2018.
+[45] Shujun Zhang, Shuhao Xu, Liwei Tan, Hongyan Wang, and Jianli Meng. Stroke lesion detection
+and analysis in mri images based on deep learning. Journal of Healthcare Engineering , 2021:
+1–9, 2021.
+[46] Xiaoman Zhang, Chaoyi Wu, Ya Zhang, Yanfeng Wang, and Weidi Xie. Knowledge-enhanced
+pre-training for auto-diagnosis of chest radiology images. arXiv preprint arXiv:2302.14042 ,
+2023.
+[47] Yao Zhang et al. mmformer: Multimodal medical transformer for incomplete multimodal
+learning of brain tumor segmentation. In Medical Image Computing and Computer Assisted
+Intervention – MICCAI 2022 , pages 107–117, Cham, 2022. Springer Nature Switzerland.
+[48] Yuhao Zhang, Hang Jiang, Yasuhide Miura, Christopher D Manning, and Curtis P Langlotz.
+Contrastive learning of medical visual representations from paired images and text. In Machine
+Learning for Healthcare Conference , pages 2–25. PMLR, 2022.
+[49] Bolei Zhou, Aditya Khosla, Agata Lapedriza, Aude Oliva, and Antonio Torralba. Learning deep
+features for discriminative localization. In Proceedings of the IEEE conference on computer
+vision and pattern recognition , pages 2921–2929, 2016.
+[50] Lei Zhou, Huidong Liu, Joseph Bae, Junjun He, Dimitris Samaras, and Prateek Prasanna. Self
+pre-training with masked autoencoders for medical image classification and segmentation. arXiv
+preprint arXiv:2203.05573 , 2022.
+17

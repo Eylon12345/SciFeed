@@ -1,0 +1,376 @@
+An active inference  model of  Lacanian psychoanalysis  
+Lingyu Li 1,2, Chunbo Li *,1,2 
+1 Shanghai Mental Health Center, Shanghai Jiao Tong University School of Medicine, 
+Shanghai 200030, China; 2 Shanghai Jiao Tong University School of Medicine, 
+Shanghai 200023, China  
+*Correspondence: licb@smhc.org.cn  (Chunbo Li)  
+Abstract  
+There has been a growing interest in exploring behavior, brain, and mind  through the 
+lens of complex systems theory. However,  a unified and computational  model that 
+comprehensively encapsulates the properties of the human mind remains elusive.  To 
+address this gap, we  propose a recurrent generative  model drawing upon with 
+Lacanian psychoanalysis  and active inference . We conceptualize  mechanism of  desire 
+as partial generalized synchronization , and then apply the model to suicidal dynamics  
+to illustrate the theoretical and  practical implications  of our model . This work on 
+computational psychoanalysis  reveals its potential  in unraveling complex mental 
+phenomena . 
+ 
+Keywords:  active inference, free energy principle, Lacan, psychoanalysis  
+ 
+Introduction  
+Over centuries, researchers have devoted effort s to understand  mental 
+phenomena . The emergence of the complex systems approach has ushered in a new 
+paradigm, offering a fresh lens through which to understand the complex and 
+systematic nature of mental states  (1). This perspective treats mental processes as 
+dynamic interplays influenced by both internal and external variables  (2). These 
+insights have profound implications for psychopathology, including the early 
+detection of warning signs, the prediction of symptom shifts, and transdiagnostic 
+understandings of perception, behavior, thoughts, and memory  (3-5). However, a unified and quantified model that comprehensively encapsulates the properties of the 
+human mind remains elusive. The challenge lies in defining the locus of the mind's 
+existence, its evolutionary drivers, and the inherent lack of a cohesive theory. As such , 
+there's a growing demand for top -down theory -laden models in current realm (6). 
+To address this gap, we propose an example of generative model that draws 
+inspiration from both Lacanian psycho analysis and active inference . By melding these 
+two theoretical frameworks, we aim to offer a comprehensive model that captures the 
+dynamic essence of the human mind. After introducing  key aspects of Lacanian theory, 
+such as the three registers (Imaginary, Symbolic, Real), logical time, and desire , we 
+find out the intimacy between these concepts and principles of active inference . A 
+recurrent generati ve model  is constructed then,  allowing us to simulate and 
+understand the complex unfolding of mental states.  Furthermore, we delve into the 
+concept of desire as partial generalized synchronization  between individuals , offering 
+a unique perspective on human interactions  and interpersonal dyna mics. To illustrate 
+the practical implications of computational psychoanalysis , we apply our model to 
+suicidal dynamic , and gain some computational  insights into the underlying 
+mechanisms and potential prevention strategies. These  explorations underline the 
+potential of computational psychoanalysis in unraveling complex mental phenomena.  
+ 
+Introduction to  Lacanian psychoanalysis  and Active Inference  
+Lacanian psychoanalysis  
+Lacan is renowned for his  sophisticated  theory of psycho analysis, deeply rooted 
+in philosophy  and linguistics.  An exhaustive overview of Lacan's theory is beyond the 
+scope of this article, we will focus on three pivotal concepts: the three registers, logical 
+time, and desire.  
+At the core of Lacanian  psychoanalysis  are the three registers: the Imaginary, the 
+Symbolic, and the Real. These registers serve as a fundamental framework for 
+understanding where the human subject resides within their mental state s. According to Lacan, an individual's mental state is a blend of these three domains  that influence 
+the subject simultaneously and interdependently, akin to a Borromean ring. The 
+Imaginary represents an internal representation  of the external world. The dynamic 
+interplay between the external world and the internal self leads to primary self -
+identification and self -knowledge, though inherently distorted due to its "imaginary" 
+nature. Consequently, the identification within the I maginary is essentially a 
+misidentificatio n, forming the basis for psychosis  (7). The Symbolic domain 
+encompasses the language. Put succinctly, since the "unconscious is structured like a 
+language," the Symbolic operates akin to Hermeneutics, addressing issues of meaning 
+generation, self -interpretation,  and intersubjectivity.  Hence the Symbolic is linguistic 
+representation of the situations of subject. However, it's important to note that any 
+representation is inherently incomplete, leaving aspects unrepresented. The Real 
+collects the unrepresented,  thus existing as a realm of "impossi bility", a missing reality. 
+Derived from the Real, the concept of repetition —manifested as an incessant attempt 
+to represent the unrepresented —becomes another fundamental concept  of Lacanian  
+psychoanalysis  (8). 
+Logical time introduces the notion that human experiences cannot be neatly 
+confined within a unidirectional and chronological understanding of time. From the 
+perspective of logical time, “the past anticipates a future within which it can 
+retroactively find a place” . In other words, the past bestows significance upon 
+forthcoming events in an anticipatory manner, and the future imbues the past with 
+retroactive meaning. Along logical time, meaningful relationships between events 
+emerge, transforming time into a mechanism that generates significance . This concept 
+underscores the anticipatory nature of human mind and emphasizes the importance 
+of retroactive re construction (9). 
+And what drives the ongoing evolution of the three registers within logical time? 
+Repetition, as mentioned , serves as the driving force. For Lacan, repetition represents 
+the return of something that maintains i dentical—object petit a , a concept rooted in the 
+Real, leading to the endless  metonymic course of  desire. And orientation of drive is the 
+running of desire towards object petit a . The history of subjectivity unfurls in the repetition of desire's trajectory:  the unrepresented  → object petit a → desire → object 
+of desire → failure of representation → the unrepresented. That is, desire can never be 
+satisfied, and the endless cycles contribute to so -called fantasy that need to be traversed 
+by psychoanalysis practice.  
+Ultimately, a rudimentary definition of the human mind emerges from Lacanian 
+perspective — composite status of three registers which is perturbated  by desire 
+running over the logical time.  
+Active Inference  
+Active inference, a burgeoning theory in neuroscience, aims to provide a universal  
+principle of  living systems  at any scales like  neural activities, perceptions, and 
+individual and collective behaviors  (10). The precise state of the environment, often 
+concealed (referred to as the hidden state ), necessitates the system to deduce the hidden 
+state (terme d inference) by employing an internal model founded on existing 
+environmental knowledge, known as priors. Subsequent to observations, the system 
+evaluates its inference, and discrepancies  (surprises) are fed back to the system to 
+formulate conclusions ( posteriors ) and refine its internal model. An alternative way to 
+fulfill original inference  is to change  the environment  actively. Therefore,  both of 
+perception and action serves the unified purpose of enhancing the performance of the 
+internal model , i.e., minimal surprises  (11). Then the concept of planning or decision-
+making is involved in active inference . From a range of alternative  policies, the system  
+tends to adopting the policy that is anticipated to optimize its internal model most 
+effectively.  
+The central tenet of this optimization process is the minimization of free energy —
+a principle known as the  free energy principle . Originally a thermodynamic  concept, free 
+energy quantifies the energy available in a system to alter its properties. In essence, 
+minimal free energy implies a state of equilibrium within the system. In the context of 
+active inference , free energy, encompassing both variational and expected free energy , 
+gauges the “energy” required to modify one's internal model.  Rayn et al have p rovided a detailed and hands -on tutorial on active inference (12). And we hereby only focus on 
+variational and expected free energy  to uncover the intimacy between Lacanian 
+psychoanalysis and active inference . 
+Based on priors over hidden state of environment 𝑃(𝑠)  and likelihood of 
+corresponding observation 𝑃(𝑜|𝑠), an approximated posterior 𝑄(𝑥) is calculated . Real 
+observation data serves as evidence for this inference, denoted as 𝑃(𝑜) . And the 
+variational free energy F is mathematically expressed as follows:  
+𝐹[𝑄,𝑜]=𝐷𝐾𝐿[𝑄(𝑠)||𝑃(𝑠|𝑜)]−𝑙𝑛 𝑃(𝑜) 
+When model evidence is exceptionally robust,  a belief with lowest variational free 
+energy could perform exact inference on hidden state, because  the Kullback -Leibler 
+divergence between the approximated posterior and posterior probability is expected 
+to be minimal.  Conversely, when evidence is relatively weak, an exact inference could 
+be difficult . Then another way to minimize the variation free energy is to obtain 
+evidence through action, transferring current  context to action  planning . For every 
+conceivabl e policy 𝜋 , the anticipated  state of the system, denoted as 𝑥̃ , is deduced 
+based on transition possibilities  𝑃(𝑥̃|𝑥,𝜋) . Then the expected free energy  G of this 
+policy is calculated as:  
+𝐺(𝜋)=𝐷𝐾𝐿[𝑄(𝑥̃|𝜋)||𝑃(𝑥̃|𝐶)]+𝔼𝑄(𝑥̃|𝜋)[𝐻[𝑃(𝑦|𝑥̃)]] 
+The calculation of expected free energy G involves two items:  risks (divergences 
+between expected and preferred states) and expected ambiguity  (Shannon entropy of 
+expected outcomes) . Therefore, policy with lowest expected free energy could balance 
+risks and ambiguity, providing a solution to the exploration -exploitation dilemma  (12).  
+In essence, expected free energy is a “belief that one will minimize free energy in the 
+future” (11). This replicates the mechanism of logical time, as Lacan described: “the 
+past anticipates a future within which it can retroactively find a place” (9). 
+Additionally, both Lacanian psychoanalysis and active inference are on how external 
+world is represented by internal models, and the unrepresented or surprises plays a 
+significant role in the dynamical operations. The intimacy between these two 
+theoretic al frameworks lays foundations of our incorporating work, and in the next section, we propose a generative model for further explorations.   
+Generative model  of Lacanian  psychoanalysis  
+Inspired by previous research in Lacanian neuropsychoanalysis, we begin with  an 
+initial endeavor to roughly map the functions of the three registers onto the brain 
+(Figure 1. a), setting the stage for our formal generative model. Our intention is not to 
+achieve a precise anatomical or functional mapping, but rather to establish an intuitive 
+framework for defining  the system of current interest . The Real is situated within the 
+upper brainstem and diencephalic system, as these areas play a fundamental role in 
+affective experiences, consciousness, and the primary needs of the body such  as 
+sustenance, sexuality, and homeostasis  (13). The Imaginary, on the other hand, 
+corresponds to the parietal and occipital lobes, given their involvement in motor 
+control, visual perception, and the representation of self (body -image). The Symbolic 
+domain is allocated to the prefrontal and parietal lobes, responsible for executing 
+language processing, generating meaning, and conducting thought experiments based 
+on anticipation and retroaction  (14). 
+ 
+Figure 1. Illustration of recurrent generative model entailing principles of Lacanian 
+psychoanalysis and active inference. (a) An intuitive mapping  of three registers  onto brain 
+regions. R: the Real; S: the Symbolic; I: the Imaginary (b) F lowchart  of our recurrent 
+generative model with three interconnected  basic units  operating in discrete time. (c) A 
+closer look at  basic unit within the generative mode l.  (d) Simulation of dynamics of three 
+registers when the Symbolic register is perturbated. 
+Subsequently, we put forth a recurrent generative model comprising three basic 
+units operating in discrete time, as depicted in Figure 1. b. Zooming  into the basic unit 
+(Figure 1. c), at time step τ, the unit infers the hidden state based on observations and 
+the corresponding likelihood. It then evaluates the expected free energy for each 
+alternative policy π, to realize specific preferences. As previously mentioned, the 
+system inclines towards polic ies with lowest expected free energy. Upon adopting a 
+policy π, the divergences  between preferences and outcomes are calculated. This 
+divergence element, serving as a retrospective assessment of policy effects, propagates 
+globally to all three units (each with distinct weights). It contributes to the updating of 
+the actual (variational) free energy —an entity we may term " residual free energy " to 
+emphasize  its post-hoc rationale.  Beliefs with minimal residual free energy servers as  
+the current posteriors , and as priors for the subsequent time step. Expected and 
+residual free energy enables the explicit implementation of logical time within our 
+model.  
+To examine the model , we simulat e the 15-timesteps  dynamics of the three 
+registers when the Symbolic register is perturbed , utilizing  Python 3.9 and pymdp  
+0.0.7.1 (15). We set the initial state (i.e., priors) of the Symbolic register at 0, with a 
+preference value of 4. Concurrently, we maintain consistent priors and preferences for 
+the other two registers. As depicted in Figure 1.d, when the Symbolic register aligns 
+with its preferred position, the other two registers exhibit synchronous fluctuations , 
+representing  the interconnectivity between th ree registers . This interconnectivity 
+stems from the brain -wide propagation of divergence item and residual free energy. 
+Consequently, this  recurrent  generative model not only embodies basic Lacanian idea 
+including interdependent three registers and logical time, but also reflects the close 
+relationship  between these two concepts.  
+Numerous studies have harnessed active inference  to elucidate the principles underlying various brain functions, like emotion, interoception, consciousness, 
+explanation, communication, culture, self -consciousness, body image, and 
+sensorimotor, and so on (16-24). Our generative  model could offer a holistic and top -
+down perspective on these functions  by treat them as different modalities within three 
+registers . 
+Desire as Partial Generalized Synchronization  
+ To capture the dynamics of the human mind within real -world contexts, 
+communication must not be overlooked.  In the field of active inference , 
+communication  is investigated  with the paradigm involving two subjects with similar 
+internal models (20, 25, 26) . To realize an  effective communication , two agents need to 
+infer internal models and predict each other's behaviors, culminating in 
+synchronization – a dynamic process referred to as  synchronization  of chaos or 
+generalized synchronization . In this section, we aim to integrate the concept of desire into  
+our computational psychoanalysis  model. Lacan frames the essence of desire as 
+metaphor in linguistic fashion  (23). That is, envisioning two subjects as signifiers 
+within a signifying chain, desire  of subject  is to seizure the signified of an object  (27). 
+From the lens of complexity theory, the desire of one subject on other manifests as a 
+tendency toward a generalized synchronization of their Symbolic registers. Since that 
+our model consists of three registers, the process of desire , synchroniz ation of the 
+Symbolic register s, entails partial generalized  synchronization  (Figure 2. a). This partial 
+synchronization en ables that two synchronized subjects maintain their respective 
+chaotic behaviors  (28).  
+Figure 2. Desire as partial generalized synchronization between multiple individuals. 
+(a) Two individuals, with the same internal model but different initial states, infer each 
+other’s hidden state of the Symbolic registers as their own preferences, which guarantee a 
+partial generalize synchronization.  When simulating such dynamics, we found that under 
+identical condition, subsequent dynamics could be highly variable, and we display two of 
+them, as illustrated in (b) and (c).  
+To simulate such conditions, we design two subjects (A & B) with a shared internal 
+model but differing initial states. At each time step, subjects A and B infer the state of 
+each other's Symbolic register, treating these inferred states as their own preferences. 
+The dynamics of these two subje cts' partial synchronization are illustrated in Figure 2 . 
+b and c, spanning 15 -timesteps. Despite  our uncomplicated generative model , the 
+subsequent dynamics exhibit significant diversity  under identical condition . In Figure 
+2. b, the two subjects achieve rapid synchronization, whereas in Figure 2 . c, the 
+synchronization remains  partial. This phenomenon may reflect the multifaceted  and 
+random nature of human interaction and communication.  
+Interestingly , as Figure 2b illustrates, when two subjects share the same internal 
+model, a partial synchronization of their Symbolic registers can indirectly lead to the 
+synchronization of the other two registers. This intriguing observation aligns with 
+numerous studies indicating that romantic partners often exhibit shared autonomic 
+physiology and emotional regulation across various timeframes  (29-31). One plausible 
+interpretation is that the internal models of romantic partners tend to align over time 
+due to the effects of long -term synchronization. This insight may open a novel avenue 
+for exploring interpersonal dynamics.  This section sheds light on the vital role of 
+communication in understanding the dynamics of the human mind. Integrating the 
+concept of desire into computational psychoanalysis, we unveils desire as a 
+mechanism driving partial synchronization between individuals, thereby deepening 
+our comprehension of human connections and behaviors.  
+Computational insights into  suicidal dynamics  
+We have proposed a  recurrent  generative model based on Lacanian 
+psychoanalysis and active inference , and simulated dynamics under controlled  
+conditions. However, reality is far more tumultuous, and the human mind stands as 
+an enigmatic puzzle without a readily available comprehensive solution. Despite this 
+complexity,  we could use this model as helpful tool to comprehending  complex 
+dynamics of mental  phenomena. Taking suicide thoughts and attempts as example , 
+we will apply this model  to understand  the suicidal dynamics  in this section . 
+Zizek suggests there are different modalities of suicide  in three registers  —— 
+suicide as act bearing specific massages, as total closure of the Real  (direct 
+identification of subject and object) , and as deprivation of symbolic identity  (32). A 
+qualitative study analyzing the suicide notes of 12 individuals further substantiates 
+these modalities,  including altered perception of self and other , ambivalence  of 
+emotions , taking suicide as punishment, urge to escape from the symbolic network, 
+and so on  (33). These emphasize  suicide is a comprehensive  disorder of three registers , 
+and we could understand its dynamics via our generative model.  
+As mentioned, desire courses along the Symbolic register , manifesting  as 
+tendency towards partial synchronization. But under some conditions where desire 
+fails, the synchronization is thwarted . Consequently, subject in the Symbolic register  grapple with  expected free energy that cannot be eliminated by any policy and 
+residual free energy  that keeps accumulating . Suicide,  by doing nothing in the future, 
+cancels out expected free energy  and halts the accumulation , and hence becomes the 
+final policy which is described  as passage to the act  by Lacan, in meaning of an exit from 
+the Symbolic.  On the other hand, other two registers have to cope with residual free 
+energy caused by the Symbolic register, fostering  other two modalities of suicide.  
+Corresponding fun ctions like self -representation, emotion, interoception, and so on 
+become altered. Finally, this could give rise to actual suicide attempt . 
+Consequently, within the three -dimensional state space defined by the three 
+registers, suicide assumes the guise of a state in which the system relinquishes 
+structural stability. This precarious state could potentially lead to "suicidal points," 
+characteri zed by catastrophic bifurcations. Perturbations that push the system towards 
+these critical junctures might serve as risk factors for suicide. To counteract this, 
+interventions must be designed to redirect trajectories away from these suicidal points. 
+Strategies such as social support, psychotherapeutic interventions, and appropriate 
+medications hold promise in this regard.  
+Moreover , the notion of expected and residual free energy introducing logical 
+time raises a compelling parallel —symbolic suicide has the capacity to remove the 
+subject from logical time, analogous to physical suicide's cessation of physical time. 
+This notion echoe s Hendin's perspective on suicide as act to stop  time (34). And further 
+explorations may yield more insights into phenomenology of suicide crises. In 
+conclusion, the example of suicidal dynamics  illustrates the  theoretical and practical  
+value of computational psychoanalysis , and additional research is warranted to 
+validate and expand upon these initial findings . 
+Concluding remarks  
+Inspired by  prior researches in Lacanian (neuro)psychoanalysis and active 
+inference , this work  offers theoretical foundation and computational evidence for 
+incorporations of two fields and  provides an innovative perspective  by which  complex 
+dynamics of human mind  could be dissected using lens of computational psychoanalysis.  Under the framework of active inference , we propose a recurrent 
+generative model where key Lacanian concepts like three registers, logical time find 
+computational form.  Central to our study is the novel conceptualization of desire as a 
+mechanism of partial synchronization between individuals , shedding light on intricate 
+patterns in human connections.  Finally, by exploring  dynamics of suicide with this 
+model, we add a layer of depth and relevance to current work, demonstrating the 
+clinical potential  implications . Eric Kandel, recipient of the 2000 Nobel Prize, believes 
+that psychoanalysis is “the most coherent and intellectually satisfying view of human 
+mind”, and will regain its energy through joining with cognitive neuroscience (35). 
+Our work may help to  realize this prophecy  by offering a top -down avenue for this 
+fusion through the realm of computational psychoanalysis.  
+The model we proposed  acknowledges its simplicity . There are lots of modalities , 
+multiple hierarchies , changeable parameters,  and distinct time scales  for each register . 
+On the other hand, this model only captures several basic concepts of Lacanian 
+psychoanalysis, which is essentially a theory of highly complexity . Further studies 
+might complete this skeleton via calibration of model , descriptive interpretation, 
+simulation of psychiatric disorders, appl ication into real-world data sets, and so on . In 
+summary, this study presents a convergence that blends theoretical underpinnings 
+with computational revelations . This research holds promise for comprehensive 
+understanding of human mind and inspiring further exploration into the depths of 
+cognition and behavior.  
+ 
+References  
+1. Bringmann L, Helmich M, Eronen M, Voelkle M. Complex Systems Approaches to 
+Psychopathology. 2023. p. 103 -22. 
+2. Olthof M, Hasselman F, Maatman F, Bosman A, Lichtwarck -Aschoff A. Complexity theory of 
+psychopathology. Journal of psychopathology and clinical science. 2023;132:314 -23. 
+3. Wichers M, Schreuder MJ, Goekoop R, Groen RN. Can we predict the direction of sudden 
+shifts in symptoms? Transdiagnostic implications from a complex systems perspective on 
+psychopathology. Psychological Medicine. 2019;49(3):380 -7. 
+4. Wichers M, Wigman J, Myin -Germeys I. Micro -level affect dynamics in psychopathology 
+viewed from complex dynamical system theory. Emotion Review. 2015;7(4):362 -7. 
+5. van de Leemput I, Wichers M, Cramer A, Borsboom D, Tuerlinckx F, Kuppens P, et al. Critical slowing down as early warning for the onset and termination of depression. Proceedings of the 
+National Academy of Sciences of the United States of America. 2013;111.  
+6. Epskamp S, Isvoranu AM. New trends in network modeling of psychopathology. World 
+Psychiatry. 2022;21(3):463 -4. 
+7. Mills J, Downing DL. Lacan on Psychosis: From Theory to Praxis: Routledge; 2018.  
+8. Feldstein R, Fink B, Jaanus M. Reading Seminar XI: Lacan's Four Fundamental Concepts of 
+Psychoanalysis: The Paris Seminars in English: State University of New York Press; 1995.  
+9. Hook D, Neill C, Vanheule S. Reading Lacan's Écrits: From ‘Logical Time’to ‘Response to Jean 
+Hyppolite’: Routledge; 2022.  
+10. Piekarski M. Incorporating (variational) free energy models into mechanisms (Preprint. 
+Forthcoming in Synthese)2023.  
+11. Parr T, Pezzulo G, Friston KJ. Active inference: the free energy principle in mind, brain, and 
+behavior: MIT Press; 2022.  
+12. Smith R, Friston KJ, Whyte CJ. A step -by-step tutorial on active inference and its application 
+to empirical data. Journal of Mathematical Psychology. 2022;107:102632.  
+13. Dall’Aglio J. Of brains and Borromean knots: A Lacanian meta -neuropsychology. 
+Neuropsychoanalysis. 2019;21(1):23 -38. 
+14. Miyamoto K, Rushworth MFS, Shea N. Imagining the future self through thought experiments. 
+Trends in Cognitive Sciences. 2023;27(5):446 -55. 
+15. Heins R, Millidge B, Demekas D, Klein B, Friston K, Couzin I, et al. pymdp: A Python library for 
+active inference in discrete state spaces. Journal of Open Source Software. 2022;7:4098.  
+16. Smith R, Parr T, Friston KJ. Simulating emotions: An active inference model of emotional state 
+inference and emotion concept learning. Frontiers in psychology. 2019;10:2844.  
+17. Paulus MP, Feinstein JS, Khalsa SS. An active inference approach to interoceptive 
+psychopathology. Annual review of clinical psychology. 2019;15:97 -122. 
+18. Vilas MG, Auksztulewicz R, Melloni L. Active inference as a computational framework for 
+consciousness. Review of Philosophy and Psychology. 2022;13(4):859 -78. 
+19. Parr T, Pezzulo G. Understanding, explanation, and active inference. Frontiers in Systems 
+Neuroscience. 2021;15:772641.  
+20. Friston KJ, Frith CD. Active inference, communication and hermeneutics. Cortex. 2015;68:129 -
+43. 
+21. Kastel N, Hesp C, Ridderinkhof KR, Friston KJ. Small steps for mankind: Modeling the 
+emergence of cumulative culture from joint active inference communication. Frontiers in 
+neurorobotics. 2023;16:944986.  
+22. Lanillos P, Cheng G. Robot self/other distinction: active inference meets neural networks 
+learning in a mirror. arXiv preprint arXiv:200405473. 2020.  
+23. Tremblay SC, Essafi Tremblay S, Poirier P. From filters to fillers: an active inference approach 
+to body image distortion in the selfie era. AI & SOCIETY. 2021;36:33 -48. 
+24. Sancaktar C, Gerven MAJv, Lanillos P, editors. End -to-End Pixel -Based Deep Active Inference 
+for Body Perception and Action. 2020 Joint IEEE 10th International Conference on Development 
+and Learning and Epigenetic Robotics (ICDL -EpiRob); 2020 26 -30 Oct.  2020.  
+25. Vasil J, Badcock PB, Constant A, Friston K, Ramstead MJD. A World Unto Itself: Human 
+Communication as Active Inference. Frontiers in Psychology. 2020;11.  
+26. Pan Y, Wen Y, Jin J, Chen J. The interpersonal computational psychiatry of social coordination in schizophrenia. The Lancet Psychiatry. 2023.  
+27. Fink B. Lacan on love: An exploration of Lacan's seminar VIII, transference: John Wiley & Sons; 
+2017.  
+28. Hasler M, Maistrenko Y, Popovych O. Simple example of partial synchronization of chaotic 
+systems. Physical Review E. 1998;58(5):6843 -6. 
+29. Ogolsky BG, Mejia ST, Chronopoulou A, Dobson K, Maniotes CR, Rice TM, et al. Spatial 
+proximity as a behavioral marker of relationship dynamics in older adult couples. Journal of Social 
+and Personal Relationships. 2022;39(10):3116 -32. 
+30. Palumbo RV, Marraccini ME, Weyandt LL, Wilder -Smith O, McGee HA, Liu S, et al. 
+Interpersonal Autonomic Physiology: A Systematic Review of the Literature. Personality and Social 
+Psychology Review. 2017;21(2):99 -141. 
+31. Butler EA, Randall AK. Emotional Coregulation in Close Relationships. Emotion Review. 
+2013;5(2):202 -10. 
+32. Zizek S. The fragile absolute: Or, why is the Christian legacy worth fighting for?: Verso Books; 
+2020.  
+33. Canbolat F. A qualitative research on suicide notes: Mental representations in suicide notes 
+of men. 2018.  
+34. Hendin H. Suicide in america: WW Norton & Company; 1995.  
+35. Eric R. Kandel, M.D. Biology and the Future of Psychoanalysis: A New Intellectual Framework 
+for Psychiatry Revisited. American Journal of Psychiatry. 1999;156(4):505 -24. 
+ 

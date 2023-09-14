@@ -1,0 +1,16 @@
+Summary:
+The paper introduces UniBrain, a hierarchical knowledge-enhanced pre-training framework for universal brain MRI diagnosis. The framework leverages a large-scale dataset of brain imaging-report pairs and uses a hierarchical alignment mechanism to improve feature learning efficiency. UniBrain outperforms state-of-the-art diagnostic methods and shows comparable performance to expert radiologists on certain disease types.
+
+Bullet points:
+1. UniBrain is a pre-training framework for universal brain MRI diagnosis.
+2. It leverages a large-scale dataset of brain imaging-report pairs for feature learning.
+3. UniBrain uses a hierarchical alignment mechanism to improve feature learning efficiency.
+4. UniBrain outperforms state-of-the-art diagnostic methods on three real-world datasets.
+5. It shows comparable performance to expert radiologists on certain disease types.
+
+Keywords:
+1. UniBrain
+2. pre-training
+3. MRI diagnosis
+4. hierarchical alignment
+5. diagnostic methods
