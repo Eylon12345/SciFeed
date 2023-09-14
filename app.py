@@ -1,3 +1,11 @@
+import pip
+import os
+
+if not os.path.isfile('requirements_installed.txt'):
+    pip.main(['install', '-r', 'requirements.txt'])
+    with open('requirements_installed.txt', 'w') as f:
+        f.write('Requirements installed.')
+
 import streamlit as st
 import arxiv
 import requests
