@@ -1,0 +1,7 @@
+streamlit
+arxiv
+requests
+PyPDF2
+tiktoken
+openai
+pandas

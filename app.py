@@ -80,10 +80,6 @@ def fetch_and_save_articles(keyword="Brain", n=10, save_directory="saved_article
     df_combined = pd.concat([df_new, df_old], ignore_index=True)
     df_combined.to_csv("summary_embeddings.csv", index=False)
 
-    # Debugging messages
-    print(f"New articles dataframe:\n{df_new}")
-    print(f"Combined dataframe:\n{df_combined}")
-
     # Rerun the Streamlit app to refresh the view
     st.experimental_rerun()
 
