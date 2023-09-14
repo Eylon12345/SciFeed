@@ -2,9 +2,6 @@
 New articles summary feed with AI.
 An application that fetches, summarizes, and displays scientific articles from Arxiv related to a chosen subject.
 
-Public version:
-https://scifeed.streamlit.app/
-
 ### Setting Up loacaly:
 1. Clone the repository.
 2. Set your OpenAI API key:
